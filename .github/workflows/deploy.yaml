@@ -1,0 +1,35 @@
+name: Deploy all docker images
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Run tests
+        run: |
+          docker build -t etenity/react-test -f ./client/Dockerfile.dev ./client
+          docker run -e CI=true etenity/react-test npm test
+
+      - name: Build Docker images
+        run: |
+          docker build -t etenity/multi-client ./client
+          docker build -t etenity/multi-nginx ./nginx
+          docker build -t etenity/multi-server ./server
+          docker build -t etenity/multi-worker ./worker
+
+      - name: Push Docker images
+        run: |
+          docker push etenity/multi-client
+          docker push etenity/multi-nginx
+          docker push etenity/multi-server
+          docker push etenity/multi-worker
