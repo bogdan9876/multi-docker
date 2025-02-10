@@ -34,6 +34,9 @@ jobs:
           docker push etenity/multi-server
           docker push etenity/multi-worker
 
+      - name: Generate deployment package
+        run: zip -r deploy.zip . -x '*.git*'
+
       - name: Deploy to EB
         uses: einaregilsson/beanstalk-deploy@v22
         with:
@@ -44,3 +47,4 @@ jobs:
           existing_bucket_name: elasticbeanstalk-us-east-1-654654330473
           region: us-east-1
           version_label: ${{ github.sha }}
+          deployment_package: deploy.zip
